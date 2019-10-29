@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "python-app1.fullname" . }}
+  annotations:
+  # this 4 line will enable metrics for our service so promethus can scrap data
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8080"
+    prometheus.io/scheme: http
+    prometheus.io/scrape: "true"
+  labels:
+    app: {{ template "python-app1.fullname" . }}
+    chart: {{ template "python-app1.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    metrics: "true"
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: app
+      protocol: TCP
+      name: app
+  selector:
+    app: {{ template "python-app1.fullname" . }}
+    release: {{ .Release.Name }}

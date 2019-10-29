@@ -1,0 +1,14 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "python-app1.fullname" . }}
+  labels:
+    app: {{ template "python-app1.fullname" . }}
+    chart: {{ template "python-app1.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app: {{ template "python-app1.fullname" . }}

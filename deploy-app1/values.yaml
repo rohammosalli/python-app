@@ -1,0 +1,33 @@
+replicas: 2
+image: rohammosalli/app1
+Imagetag: 'latest'
+ingressClass: nginx
+extraConfig: ""
+namespace: b2c
+
+
+
+#if you want access to this app you shuld add your source ip in here (find your IP "curl ifconfig.ca")
+whitelist: 51.158.191.230/32
+
+service:
+  type: ClusterIP
+  port: 8080
+
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+  maxSurge: 1
+  maxUnavailable: 25%
+
+
+
+
+ingress:
+  enabled: true
+  annotations: {}
+  path: /app1
+  hosts:
+    - app1.pinsvc.net
+

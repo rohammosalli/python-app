@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "python-app1.fullname" . }}
+  labels:
+    app: {{ template "python-app1.fullname" . }}
+    chart: {{ template "python-app1.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicas }}
+{{- if .Values.strategy }}
+{{ toYaml .Values.strategy | indent 2 }}
+{{- end }}
+
+
+  selector:
+    matchLabels:
+      app: {{ template "python-app1.fullname" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ template "python-app1.fullname" . }}
+        release: {{ .Release.Name }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ template "python-app1.fullname" . }}
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      imagePullSecrets:
+        - name: "{{ .Values.imagePullSecrets }}"
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image }}"
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            memory: 265Mi
+        ports:
+        - name: app
+          containerPort: 8080
+        volumeMounts:
+            - name: config
+              mountPath: "/config"
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: app
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 10
+        #   timeoutSeconds: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: app
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 10
+        #   timeoutSeconds: 3
+      volumes:
+      - name: config
+        configMap:
+          name: "{{ template "python-app1.fullname" . }}"
+

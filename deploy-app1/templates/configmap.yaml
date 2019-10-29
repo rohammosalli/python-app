@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "python-app1.fullname" . }}
+data:
+  config.conf: |-
+    include "{{ .Values.baseConfig }}.conf"
+{{ .Values.extraConfig | replace " " "\n" | indent 4 }}
