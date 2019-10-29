@@ -1,9 +1,9 @@
 #### Part 1 
 ###### Setup Kubernetes Cluster 
 
-we can use GKE and Teraform to Deploy our Cluster or just we can use Kubespray
+we can use GKE and Teraform to Deploy our Cluster or just we can use Kubespray to deploy self hosted cluster
 
-if you want use Teraform to deploy GEK 
+if you want use Teraform to deploy GEK follow this steps 
 
 mkdir creds
 cp DOWNLOADEDSERVICEKEY.json creds/serviceaccount.json
@@ -45,29 +45,33 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   }
 }
 ```
+Then you can deploy cluster on GCP with ```terraform apply``` command
+```bash
 terraform plan
 
 terraform apply
+```
+###### Self Hosted Cluster 
 
 I used this link [High Available Kubernetes Cluster Setup using Kubespray](https://schoolofdevops.github.io/ultimate-kubernetes-bootcamp/cluster_setup_kubespray/) to deploy my cluster on Scaleway 
 
 
-### Part 2 
+### Part 2 - Application 
 
-I used python and Flask framework to develop app and Flask Promethues exporter to expost my python metrics 
+I used python and Flask framework to develop our app and Flask-Promethues exporter to expost my python metrics so we can monitor it with Prometheus
+
+
+###### Run application localy for test
 
 if you want to run this app localy please use this method 
 
 ```bash 
-
 pip install -r /app/requirements.txt
-
 python app.py 
-
 ```
-the path /app1 and my /app2 will be exposed in Ingress file 
+you can access to the application with / in local, if you run it on Kubernetes the app will be access with /app1
 
-### Part 3 
+### ⋅⋅*Part 3 - Helm Chart
  
 for each app, I write a Helm Chart, in my chart I tried to use a comment to make everything clear but after run all charts if you find any error or warning something like this 
 
@@ -79,6 +83,33 @@ It's because of Kubernetes version since I used Kubernetes 1.16 some API version
 
 [this link ](https://kubernetes.io/blog/2019/09/18/kubernetes-1-16-release-announcement/)
 
+#### Note:
+⋅⋅* if you want change something you can try to edit values.yaml
+..* if you have compelex path you need add something in Ingress file 
+
+```yaml 
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+```    
+```yaml
+path: /app1/?(.*)
+```
+
+You may find something like this in templates/deployment.yaml, I used podAntiAffinity to make our application more efficient and Cluster Balanced
+
+```yaml
+ affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ template "python-app1.fullname" . }}
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+```            
 ### part 4 
 
 ###### deploy Ingress Controller and some security 
@@ -118,7 +149,7 @@ annotations:
     # message to display with an appropiate context why the authentication is required
     nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
 ```
-But myself I just used whitelist-source-range and alsow nodes behind a firewall    
+But myself I just used whitelist-source-range, also I perefer nodes behind a firewall    
 
 ### part 5  
 ###### Deploy Prometheus 
