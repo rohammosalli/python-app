@@ -107,6 +107,19 @@ sh "htpasswd -b -c password username password"
 sh "kubectl create secret generic basic-auth --from-file=password"
 sh "kubectl -n b2c create secret generic basic-auth  --from-file=password --dry-run=true -o yaml | kubectl apply -f -"
 ```
+Then you can use Ingress Anotation 
+
+```yaml
+annotations:
+    # type of authentication
+    nginx.ingress.kubernetes.io/auth-type: basic
+    # name of the secret that contains the user/password definitions
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    # message to display with an appropiate context why the authentication is required
+    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
+```
+But myself I just used whitelist-source-range and alsow nodes behind a firewall    
+
 ### part 5  
 ###### Deploy Prometheus 
 
