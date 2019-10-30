@@ -166,7 +166,7 @@ Then we can set our rule in ingress
 annotations:
     ingress.kubernetes.io/whitelist-source-range: 49.36.X.X/32
 ```
-To deploy Ingress path securly we can use whitelist or Basic-auth, you can change whitelist in Values file
+To deploy Ingress path securly we can use whitelist or Basic-auth, you can change some annotation in Values file
 
 
 if you want use Basic-Auth you can add this line to the Jenkinsfile to make it easy 
@@ -176,6 +176,8 @@ sh "htpasswd -b -c password username password"
 sh "kubectl -n b2c create secret generic basic-auth  --from-file=password --dry-run=true -o yaml | kubectl apply -f -"
 ```
 But I already added in Jenkinsfile
+
+for example you can add basic-auth in values.yaml for Ingress 
 ```yaml
 annotations:
     # type of authentication

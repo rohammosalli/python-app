@@ -7,8 +7,6 @@ namespace: b2c # if you want to deploy in another namespace you can chage it her
 
 
 
-#if you want access to this app you shuld add your source ip in here (find your IP "curl ifconfig.ca")
-whitelist: 51.158.191.230/32
 
 service:
   type: ClusterIP
@@ -28,6 +26,7 @@ strategy:
 ingress:
   enabled: true
   annotations:
+    nginx.ingress.kubernetes.io/whitelist-source-range: 51.158.191.230/32 #if you want access to this app you shuld add your source ip in here (find your IP "curl ifconfig.ca")
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/auth-type: basic
     nginx.ingress.kubernetes.io/auth-secret: basic-auth

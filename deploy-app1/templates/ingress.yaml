@@ -15,7 +15,7 @@ metadata:
     heritage: {{ .Release.Service }}
   annotations:
     kubernetes.io/ingress.class: {{ .Values.ingressClass }}
-    nginx.ingress.kubernetes.io/whitelist-source-range: {{ .Values.whitelist }}
+    
 {{- with .Values.ingress.annotations }}
 {{ toYaml . | indent 4 }}
 {{- end }}
