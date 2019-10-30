@@ -23,11 +23,15 @@ strategy:
   maxUnavailable: 25%
 
 
-
+#If you have any change in ingress like changing the path our adding annotations you work with this pars
 
 ingress:
   enabled: true
-  annotations: {}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
   path: /app1
   hosts:
     - app1.pinsvc.net
