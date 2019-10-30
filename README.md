@@ -11,6 +11,7 @@ Download your service account from GKE dashboard IAM
 mkdir creds
 cp DOWNLOADEDSERVICEKEY.json creds/serviceaccount.json
 ```
+you need to create a provider.tf file 
 
 vim provider.tf
 
@@ -23,6 +24,8 @@ provider "google" {
 
 }
 ```
+you need to create a gke-cluster.tf file 
+
 vim gke-cluster.tf
 
 ```.yaml
@@ -58,6 +61,10 @@ terraform apply
 
 I used this link [High Available Kubernetes Cluster Setup using Kubespray](https://schoolofdevops.github.io/ultimate-kubernetes-bootcamp/cluster_setup_kubespray/) to deploy my cluster on Scaleway 
 
+1 - One node Master 
+2 - One node Worker 
+
+Best Practice is 3 Master Node and 3 Worker Node at minimum 
 
 ### Part 2 - Application 
 
@@ -72,7 +79,7 @@ if you want to run this app localy please use this method
 pip install -r /app/requirements.txt
 python app.py 
 ```
-you can access to the application with / in local, if you run it on Kubernetes the app will be access with /app1
+you can access to the application with / in local, if you run it on Kubernetes the app will be access with example.com/app1
 
 ### Part 3 - Helm Chart
  
@@ -123,14 +130,14 @@ The Best Practice is we pull all nodes behind the firewall
 
 
 Exposing applications using services
-1. There are five types of Services:
-2. ClusterIP (default)
-3. NodePort
-4. LoadBalancer
-5.  ExternalName
-6. Headless
+There are five types of Services:
+1. ClusterIP (default)
+2. NodePort
+3. LoadBalancer
+4. ExternalName
+5. Headless
 
-we used ClusterIP for our applications and LoadBalancer for our Ingress Controller 
+We used ClusterIP for our applications and LoadBalancer for our Ingress Controller 
 
 ```bash
 helm install stable/nginx-ingress --namespace kube-system --name nginx  --set controller.hostNetwork=true,controller.kind=DaemonSet, --set controller.service.externalTrafficPolicy=Local
@@ -138,6 +145,7 @@ helm install stable/nginx-ingress --namespace kube-system --name nginx  --set co
 ###### Node security
 
 By default, Google Kubernetes Engine nodes use Google's Container-Optimized OS as the operating system on which to run Kubernetes and its components. Container-Optimized OS implements several advanced features for enhancing the security of Google Kubernetes Engine clusters, including:
+
 1. Locked-down firewall
 2. Read-only filesystem where possible
 3. Limited user accounts and disabled root login
@@ -153,7 +161,7 @@ We need to be sure we are using security context on pods and containers, for exa
 ##### Ingress Security 
 if we want to Using nginx-ingress controller to restrict access by IP we need do some thing, The default value of controller.service.externalTrafficPolicy in the nginx ingress helm chart is ‘Cluster’, we need to change this value to ‘Local’. With the default value of ‘Cluster’ the ingress controller does not see the actual source ip from the client request but an internal IP. After setting this value to ‘Local’ the ingress controller gets the unmodified source ip of the client request.
 
-the we can set our rule in ingress 
+Then we can set our rule in ingress 
 ```yaml
 annotations:
     ingress.kubernetes.io/whitelist-source-range: 49.36.X.X/32
@@ -167,8 +175,7 @@ if you want use Basic-Auth you can add this line to the Jenkinsfile to make it e
 sh "htpasswd -b -c password username password" 
 sh "kubectl -n b2c create secret generic basic-auth  --from-file=password --dry-run=true -o yaml | kubectl apply -f -"
 ```
-Then you can use Ingress Anotation 
-
+But I already added in Jenkinsfile
 ```yaml
 annotations:
     # type of authentication
@@ -179,7 +186,7 @@ annotations:
     nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
 ```
 ###### Use HTTPS 
-Now that you have enabled external access to our apps our any instance, the next step is to enable HTTPS for our domains in Kubernetes, we can use Let’s Encrypt Certificates and Cert-Manager, for example if you have an API and you send your  user and password in POST request from front to backend without any SSL it can be hacked but but using ssl will encrypte your HTTP body request 
+Now that you have enabled external access to our apps our any instance, the next step is to enable HTTPS for our domains in Kubernetes, we can use Let’s Encrypt Certificates and Cert-Manager, for example, if you have an API and you send your  user and password in POST request from front to backend without any SSL it can be hacked but using SSL will encrypt your HTTP body request 
 
 
 ### part 5  
@@ -187,7 +194,7 @@ Now that you have enabled external access to our apps our any instance, the next
 
 To Install prometheus we can use helm
 
-We need change something in values for example add our domain in Ingress part 
+We need change something in values for example add our domain in Ingress part and enable ingress, disable other stuff if you don't need 
 
 ```yaml
  ingress:
@@ -197,19 +204,19 @@ We need change something in values for example add our domain in Ingress part
     hosts:
       - prom.pinsvc.net
 ```
-Since we need just Prometheus we can disable other lines like alert manager and also if we don't have any storage we can disable PCV in values.yaml
+Since we need just Prometheus we can disable others like alert manager and also if we don't have any storage we can disable PCV in values.yaml
 
 ```bash 
 #clone the heelm chart then run this 
-helm install --name promethus -f values.yaml .
+helm install --name prometheus -f values.yaml .
 
 ```
-if we want the Prometheus scarp data form our app with /metrics we can set some anotations in our application service, I added this in srvice helm cnthart this will help promethus service discovery to find our endpoint 
+If we want the Prometheus scarp data form our app with /metrics we can set some anotations in our application service, I added this in srvice helm cnthart, this will help prometheus service discovery to find our endpoint 
 
 ```yaml
  name: {{ template "python-app1.fullname" . }}
   annotations:
-  # this 4 line will enable metrics fotr our service so promethus can scrap data
+  # this 4 line will enable metrics fotr our service so prometheus can scrap data
     prometheus.io/path: /metrics
     prometheus.io/port: "8080"
     prometheus.io/scheme: http
@@ -223,8 +230,8 @@ After this for example you can find this ```(python_gc_collections_total)``` que
 If you want deploy Jenkins on Kubrnetes you can take look at [google solutions](https://cloud.google.com/solutions/jenkins-on-kubernetes-engine) 
 
 
-But what I did! I used a vm To Install Docker and Used Custome jenkins image, we have some ways to Integrate jenkins with 
-Kubernetes with some plugins, But I used manual way because it's was easy sience I don't use GKE
+But what I did! I used a VM To Install Docker and Used Custome Jenkins image, we have some ways to Integrate Jenkins with 
+Kubernetes with some plugins, But I used manual way because it's was easy since I don't use GKE
 
 ```Dockerfile
 FROM jenkins/jenkins:lts
@@ -263,17 +270,17 @@ docker build -t jenkins .
 docker tag jenkins rohammosalli/jenkins:lts
 docker push rohammosalli/jenkins:lts
 ```
-What I did ? 
 
 I Build my custom Image because I need Helm and Kubectl command and copying my Kubernetes certificate to the Jenkins VM, for security we need setup SSH Key-based authentication and whitelist the specific IP's need to access to this machine.
 
-I just used Jenkins Master, It's not recommended but in Production, we need some Jenkins Slave to do to our jobs
+###### I just used Jenkins Master, It's not recommended but in Production, we need some Jenkins Slave to do to our jobs
 
 
 ```bash
 docker run   -u root   --rm   -d   -p 8080:8080   -p 50000:50000   -v jenkins-data2:/var/jenkins_home   -v /var/run/docker.sock:/var/run/docker.sock -v /root/.kube:/root/.kube   rohammosalli/jenkins:lts
 ```
 
-this part of docker run -v ```/root/.kube:/root/.kube``` will mount our Kubernetes certificate from Jenkins host to the Jeknins container  
+This part of docker run ```-v /root/.kube:/root/.kube``` will mount our Kubernetes certificate from Jenkins host to the Jeknins container  
 
-Then I wrote my Jenkinsfile to Run Pipeline it's very simple because I didn't have any advanced experience with Jenkins, Bu I know we can use Built-in variable and shared library to make our Jekninsfile reusable for other Project and also 
+Then I wrote my Jenkinsfile to Run Pipeline it's very simple, because I didn't have any advanced experience with Jenkins, But I know we can use``` Built-in variable``` and ```shared library``` to make our Jekninsfile reusable for other Project.
+
