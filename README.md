@@ -7,6 +7,7 @@ if you want use Teraform to deploy GEK follow this steps
 
 
 Download your service account from GKE dashboard IAM
+
 mkdir creds
 cp DOWNLOADEDSERVICEKEY.json creds/serviceaccount.json
 
@@ -73,7 +74,7 @@ python app.py
 ```
 you can access to the application with / in local, if you run it on Kubernetes the app will be access with /app1
 
-### ⋅⋅*Part 3 - Helm Chart
+### Part 3 - Helm Chart
  
 for each app, I write a Helm Chart, in my chart I tried to use a comment to make everything clear but after run all charts if you find any error or warning something like this 
 
@@ -86,11 +87,11 @@ It's because of Kubernetes version since I used Kubernetes 1.16 some API version
 [this link ](https://kubernetes.io/blog/2019/09/18/kubernetes-1-16-release-announcement/)
 
 #### Note:
-⋅⋅* if you want change something you can try to edit values.yaml
-..* if you have compelex path you need add something in Ingress file 
+1. if you want change something you can try to edit values.yaml
+2. if you have compelex path you need add something in Ingress file 
 
 
-you have to change / to /$1 if you have complex path 
+You have to change / to /$1 if you have complex path 
 ```yaml 
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 ```    
@@ -122,24 +123,25 @@ The Best Practice is we pull all nodes behind the firewall
 
 
 Exposing applications using services
-..* There are five types of Services:
-... ClusterIP (default)
-... NodePort
-... LoadBalancer
-... ExternalName
-... Headless
+1. There are five types of Services:
+2. ClusterIP (default)
+3. NodePort
+4. LoadBalancer
+5.  ExternalName
+6. Headless
 
 we used ClusterIP for our applications and LoadBalancer for our Ingress Controller 
+
 ```bash
 helm install stable/nginx-ingress --namespace kube-system --name nginx  --set controller.hostNetwork=true,controller.kind=DaemonSet, --set controller.service.externalTrafficPolicy=Local
 ```
 ###### Node security
 
 By default, Google Kubernetes Engine nodes use Google's Container-Optimized OS as the operating system on which to run Kubernetes and its components. Container-Optimized OS implements several advanced features for enhancing the security of Google Kubernetes Engine clusters, including:
-... Locked-down firewall
-... Read-only filesystem where possible
-... Limited user accounts and disabled root login
-... Use key-based Authentication
+1. Locked-down firewall
+2. Read-only filesystem where possible
+3. Limited user accounts and disabled root login
+4. Use key-based Authentication
 
 ###### Limiting Pod-to-Pod communication
 By default, all Pods in a cluster can be reached overnetwork via their Pod IP address, we can use Ingress and egress and network policis to allow use tags to define the traffic flowing through your Pods, Once a network policy is applied in a namespace, all traffic is dropped to and from Pods that don't match the configured labels. 
@@ -184,9 +186,9 @@ Now that you have enabled external access to our apps our any instance, the next
 ### part 5  
 ###### Deploy Prometheus 
 
-To Install prometheus we can use helm and prometheus Document
+To Install prometheus we can use helm
 
-we need change something in values for example add our domain in Ingress part 
+We need change something in values for example add our domain in Ingress part 
 
 ```yaml
  ingress:
@@ -196,14 +198,13 @@ we need change something in values for example add our domain in Ingress part
     hosts:
       - prom.pinsvc.net
 ```
-since we need just Prometheus we can disable other part line alert manager and also if we don't have any storage we can disable PCV in values.yaml
+Since we need just Prometheus we can disable other lines like alert manager and also if we don't have any storage we can disable PCV in values.yaml
 
 ```bash 
-
+#clone the heelm chart then run this 
 helm install --name promethus -f values.yaml .
 
 ```
-
 if we want the Prometheus scarp data form our app with /metrics we can set some anotations in our application service, I added this in srvice helm cnthart this will help promethus service discovery to find our endpoint 
 
 ```yaml
@@ -215,9 +216,6 @@ if we want the Prometheus scarp data form our app with /metrics we can set some 
     prometheus.io/scheme: http
     prometheus.io/scrape: "true"
 ```
-
-
-
 ### part 6 
 ###### Setup our Jenkins CI CD 
 
