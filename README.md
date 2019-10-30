@@ -66,24 +66,31 @@ I used this link [High Available Kubernetes Cluster Setup using Kubespray](https
 
 Best Practice is 3 Master Node and 3 Worker Node at minimum 
 
+
+###### Note :
+1 - f you experience highly load traffic in your cluster you should take care of out of-resource handling in Kubelet, you have to reserve some memory and CPU for nodes because if you don't, the nodes  in under pressure Kerlel will kill the process so this means you will lose your node or cluster.
+
+2 - If you use Master Node alos as worker Please don't do it.
+
 ### Part 2 - Application 
 
-I used Python and Flask framework to develop our app and Flask-Prometheus exporter to expose my python metrics so we can monitor it with Prometheus
+I used Python and Flask framework to develop our app and Flask-Prometheus exporter to expose my python metrics so we can monitor it with Prometheus.
 
 
 ###### Run application localy for test
 
-if you want to run this app localy please use this method 
+if you want to run this app localy please use this method.
 
 ```bash 
 pip install -r /app/requirements.txt
 python app.py 
 ```
-you can access to the application with / in local, if you run it on Kubernetes the app will be access with example.com/app1
+you can access to the application with / in local, if you run it on Kubernetes the app will be access with example.com/app1.
 
 ### Part 3 - Helm Chart
  
-for each app, I write a Helm Chart, in my chart I tried to use a comment to make everything clear but after run all charts if you find any error or warning something like this 
+for each app, I write a Helm Chart, in my chart I tried to use a comment to make everything clearو
+ after run all charts if you find any error or warning something like this 
 
 ```bash
 error: unable to recognize "deployment": no matches for kind "Deployment" in version "extensions/v1beta1"
@@ -94,18 +101,17 @@ It's because of Kubernetes version since I used Kubernetes 1.16 some API version
 [this link ](https://kubernetes.io/blog/2019/09/18/kubernetes-1-16-release-announcement/)
 
 #### Note:
-1. if you want change something you can try to edit values.yaml
-2. if you have compelex path you need add something in Ingress file 
+1. if you want to change anything for Helm Chart you try edit files on ```/deploy-app1```
+2. if you have complex Path you need add edit some path and annotations in ```Values.yaml``` Ingress part, then You have to change / to /$1 in ```nginx.ingress.kubernetes.io/rewrite-target``` if you have complex Path or not leave alone 
 
 
-You have to change / to /$1 if you have complex path 
 ```yaml 
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-```    
+```
+And just put this regex in Path     
 ```yaml
 path: /app1/?(.*)
 ```
-
 You may find something like this in templates/deployment.yaml, I used podAntiAffinity to make our application more efficient and Cluster Balanced
 
 ```yaml
