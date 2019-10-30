@@ -1,10 +1,12 @@
 #### Part 1 
 ###### Setup Kubernetes Cluster 
 
-we can use GKE and Teraform to Deploy our Cluster or just we can use Kubespray to deploy self hosted cluster
+we can use Teraform to Deploy our GKE Cluster or just we can use Kubespray to deploy self hosted cluster
 
 if you want use Teraform to deploy GEK follow this steps 
 
+
+Download your service account from GKE dashboard IAM
 mkdir creds
 cp DOWNLOADEDSERVICEKEY.json creds/serviceaccount.json
 
@@ -58,7 +60,7 @@ I used this link [High Available Kubernetes Cluster Setup using Kubespray](https
 
 ### Part 2 - Application 
 
-I used python and Flask framework to develop our app and Flask-Promethues exporter to expost my python metrics so we can monitor it with Prometheus
+I used Python and Flask framework to develop our app and Flask-Prometheus exporter to expose my python metrics so we can monitor it with Prometheus
 
 
 ###### Run application localy for test
@@ -87,6 +89,8 @@ It's because of Kubernetes version since I used Kubernetes 1.16 some API version
 ⋅⋅* if you want change something you can try to edit values.yaml
 ..* if you have compelex path you need add something in Ingress file 
 
+
+you have to change / to /$1 if you have complex path 
 ```yaml 
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 ```    
@@ -116,10 +120,35 @@ You may find something like this in templates/deployment.yaml, I used podAntiAff
 
 The Best Practice is we pull all nodes behind the firewall
 
+
+Exposing applications using services
+..* There are five types of Services:
+... ClusterIP (default)
+... NodePort
+... LoadBalancer
+... ExternalName
+... Headless
+
+we used ClusterIP for our applications and LoadBalancer for our Ingress Controller 
 ```bash
 helm install stable/nginx-ingress --namespace kube-system --name nginx  --set controller.hostNetwork=true,controller.kind=DaemonSet, --set controller.service.externalTrafficPolicy=Local
 ```
+###### Node security
 
+By default, Google Kubernetes Engine nodes use Google's Container-Optimized OS as the operating system on which to run Kubernetes and its components. Container-Optimized OS implements several advanced features for enhancing the security of Google Kubernetes Engine clusters, including:
+... Locked-down firewall
+... Read-only filesystem where possible
+... Limited user accounts and disabled root login
+... Use key-based Authentication
+
+###### Limiting Pod-to-Pod communication
+By default, all Pods in a cluster can be reached overnetwork via their Pod IP address, we can use Ingress and egress and network policis to allow use tags to define the traffic flowing through your Pods, Once a network policy is applied in a namespace, all traffic is dropped to and from Pods that don't match the configured labels. 
+
+###### Pod Security Policy
+We need to be sure we are using security context on pods and containers, for example all containers should run as none user root, all Pods in a cluster adhere to a minimum baseline policy that you define.
+
+
+##### Ingress Security 
 if we want to Using nginx-ingress controller to restrict access by IP we need do some thing, The default value of controller.service.externalTrafficPolicy in the nginx ingress helm chart is ‘Cluster’, we need to change this value to ‘Local’. With the default value of ‘Cluster’ the ingress controller does not see the actual source ip from the client request but an internal IP. After setting this value to ‘Local’ the ingress controller gets the unmodified source ip of the client request.
 
 the we can set our rule in ingress 
@@ -135,7 +164,6 @@ if you want use Basic-Auth you can add this line to the Jenkinsfile to make it e
 
 ```bash
 sh "htpasswd -b -c password username password" 
-sh "kubectl create secret generic basic-auth --from-file=password"
 sh "kubectl -n b2c create secret generic basic-auth  --from-file=password --dry-run=true -o yaml | kubectl apply -f -"
 ```
 Then you can use Ingress Anotation 
@@ -149,7 +177,9 @@ annotations:
     # message to display with an appropiate context why the authentication is required
     nginx.ingress.kubernetes.io/auth-realm: "Authentication Required"
 ```
-But myself I just used whitelist-source-range, also I perefer nodes behind a firewall    
+###### Use HTTPS 
+Now that you have enabled external access to our apps our any instance, the next step is to enable HTTPS for our domains in Kubernetes, we can use Let’s Encrypt Certificates and Cert-Manager, for example if you have an API and you send your  user and password in POST request from front to backend without any SSL it can be hacked but but using ssl will encrypte your HTTP body request 
+
 
 ### part 5  
 ###### Deploy Prometheus 
@@ -191,9 +221,11 @@ if we want the Prometheus scarp data form our app with /metrics we can set some 
 ### part 6 
 ###### Setup our Jenkins CI CD 
 
-What I did I used a vm for our Jenkins and custome Docker Image 
+If you want deploy Jenkins on Kubrnetes you can take look at [google solutions](https://cloud.google.com/solutions/jenkins-on-kubernetes-engine) 
 
 
+But what I did! I used a vm To Install Docker and Used Custome jenkins image, we have some ways to Integrate jenkins with 
+Kubernetes with some plugins, But I used manual way because it's was easy sience I don't use GKE
 
 ```Dockerfile
 FROM jenkins/jenkins:lts
@@ -223,7 +255,7 @@ RUN curl -LO https://kubernetes-helm.storage.googleapis.com/helm-v2.10.0-linux-a
     mv ./linux-amd64/helm /usr/local/bin/helm && \
     rm -rf helm-v2.10.0-linux-amd64.tar.gz
 
-
+RUN apt-get install apache2-utils -y 
 
 USER jenkins
 ```
