@@ -224,11 +224,10 @@ If we want the Prometheus scarp data form our app with /metrics we can set some 
 ```
 After this for example you can find this ```(python_gc_collections_total)``` query in promethesu PromQL TextBox or you can find it in kubernetes-services at Prometehus Service Discovery 
 
-### part 6 
-###### Setup our Jenkins CI CD us
+### Part 6 
+###### Setup our Jenkins CI/CD
 
 If you want deploy Jenkins on Kubrnetes you can take look at [google solutions](https://cloud.google.com/solutions/jenkins-on-kubernetes-engine) 
-
 
 But what I did! I used a VM To Install Docker and Used Custome Jenkins image, we have some ways to Integrate Jenkins with 
 Kubernetes with some plugins, But I used manual way because it's was easy since I don't use GKE

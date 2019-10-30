@@ -1,9 +1,9 @@
-replicas: 2
-image: rohammosalli/app1
-Imagetag: 'latest'
-ingressClass: nginx
+replicas: 2 # You can Change replicas in here 
+image: rohammosalli/app1 
+Imagetag: 'latest' # this part will be replacet in CI/CD 
+ingressClass: nginx # you have a seperate Ingress for each namespace you can chnage it here
 extraConfig: ""
-namespace: b2c
+namespace: b2c # if you want to deploy in another namespace you can chage it here
 
 
 
@@ -14,7 +14,8 @@ service:
   type: ClusterIP
   port: 8080
 
-
+# This pars can help us to update or app without any Downtime, the most common SRE aspect for zero 
+# downtime says we can use Blue/Green or  Canary Deployment to make our app HA, But I just Used RollingUpdate so it's close 
 strategy:
   type: RollingUpdate
   rollingUpdate:
