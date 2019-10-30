@@ -7,10 +7,10 @@ if you want use Teraform to deploy GEK follow this steps
 
 
 Download your service account from GKE dashboard IAM
-
+```bash
 mkdir creds
 cp DOWNLOADEDSERVICEKEY.json creds/serviceaccount.json
-
+```
 
 vim provider.tf
 
@@ -157,7 +157,6 @@ the we can set our rule in ingress
 ```yaml
 annotations:
     ingress.kubernetes.io/whitelist-source-range: 49.36.X.X/32
-
 ```
 To deploy Ingress path securly we can use whitelist or Basic-auth, you can change whitelist in Values file
 
@@ -216,8 +215,10 @@ if we want the Prometheus scarp data form our app with /metrics we can set some 
     prometheus.io/scheme: http
     prometheus.io/scrape: "true"
 ```
+After this for example you can find this ```(python_gc_collections_total)``` query in promethesu PromQL TextBox or you can find it in kubernetes-services at Prometehus Service Discovery 
+
 ### part 6 
-###### Setup our Jenkins CI CD 
+###### Setup our Jenkins CI CD us
 
 If you want deploy Jenkins on Kubrnetes you can take look at [google solutions](https://cloud.google.com/solutions/jenkins-on-kubernetes-engine) 
 

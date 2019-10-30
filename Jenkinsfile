@@ -40,9 +40,8 @@ pipeline {
       steps{ 
         sh "helm list"
         sh "helm upgrade --namespace core --install python-app1 ./deploy-app1 --wait --force --set image=rohammosalli/app1:${BUILD_NUMBER}"
-        sh "htpasswd -b -c password username password" 
-        sh "kubectl create secret generic basic-auth --from-file=password"
-        sh "kubectl -n b2c create secret generic basic-auth  --from-file=password --dry-run=true -o yaml | kubectl apply -f -"
+        sh "htpasswd -b -c auth  roham 123123" 
+        sh "kubectl -n b2c create secret generic basic-auth  --from-file=auth --dry-run=true -o yaml | kubectl apply -f -"
       
       }
     }
