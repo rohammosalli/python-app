@@ -3,7 +3,7 @@
 
 we can use Teraform to Deploy our GKE Cluster or just we can use Kubespray to deploy self hosted cluster
 
-if you want use Teraform to deploy GEK follow this steps 
+if you want use Teraform to deploy GKE follow this steps 
 
 
 Download your service account from GKE dashboard IAM
@@ -80,7 +80,7 @@ I used Python and Flask framework to develop our app and Flask-Prometheus export
 
 ###### Run application localy for test
 
-If you want to run this app localy please use this method.
+If you want to run this app localy please use this method. Please use Virtualenv if you don't want install requirements in your pc, It's create isolated Python environments. 
 
 ```bash 
 pip install -r /app/requirements.txt
@@ -288,7 +288,7 @@ docker push rohammosalli/jenkins:lts
 
 I Build my custom Image because I need Helm and Kubectl command and copying my Kubernetes certificate to the Jenkins VM, for security we need setup SSH Key-based authentication and whitelist the specific IP's need to access to this machine.
 
-###### I just used Jenkins Master, It's not recommended but in Production, we need some Jenkins Slave to do to our jobs
+###### I just used Jenkins Master, It's not recommended in Production, Best way is setup some Jenkins Slave to do to our jobs
 
 
 ```bash
