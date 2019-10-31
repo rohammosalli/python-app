@@ -62,13 +62,14 @@ terraform apply
 I used this link [High Available Kubernetes Cluster Setup using Kubespray](https://schoolofdevops.github.io/ultimate-kubernetes-bootcamp/cluster_setup_kubespray/) to deploy my cluster on Scaleway 
 
 1 - One node Master 
+
 2 - One node Worker 
 
 Best Practice is 3 Master Node and 3 Worker Node at minimum 
 
 
 ###### Note :
-1 - f you experience highly load traffic in your cluster you should take care of out of-resource handling in Kubelet, you have to reserve some memory and CPU for nodes because if you don't, the nodes  in under pressure Kerlel will kill the process so this means you will lose your node or cluster.
+1 - If you experience highly load traffic in your cluster you should take care of out of-resource handling in Kubelet, you have to reserve some memory and CPU for nodes because if you don't, the nodes in under pressure kernel will kill the process, so this means you will lose your node or even the cluster.
 
 2 - If you use Master Node alos as worker Please don't do it.
 
@@ -79,13 +80,13 @@ I used Python and Flask framework to develop our app and Flask-Prometheus export
 
 ###### Run application localy for test
 
-if you want to run this app localy please use this method.
+If you want to run this app localy please use this method.
 
 ```bash 
 pip install -r /app/requirements.txt
 python app.py 
 ```
-you can access to the application with / in local, if you run it on Kubernetes the app will be access with example.com/app1.
+You can access to the application with root / in local, if you run it on Kubernetes the app will be access with example.com/app1.
 
 ### Part 3 - Helm Chart
  
@@ -101,7 +102,7 @@ It's because of Kubernetes version since I used Kubernetes 1.16 some API version
 [this link ](https://kubernetes.io/blog/2019/09/18/kubernetes-1-16-release-announcement/)
 
 #### Note:
-1. if you want to change anything for Helm Chart you try edit files on ```/deploy-app1```
+1. if you want to change anything for Helm Chart you can try edit files on ```/deploy-app1```
 2. if you have complex Path you need add edit some path and annotations in ```Values.yaml``` Ingress part, then You have to change / to /$1 in ```nginx.ingress.kubernetes.io/rewrite-target``` if you have complex Path or not leave alone 
 
 
@@ -130,7 +131,7 @@ You may find something like this in templates/deployment.yaml, I used podAntiAff
 ```            
 ### part 4 
 
-###### deploy Ingress Controller and some security 
+###### deploy Ingress Controller and some security for Cluster
 
 The Best Practice is we pull all nodes behind the firewall
 
@@ -145,6 +146,9 @@ There are five types of Services:
 
 We used ClusterIP for our applications and LoadBalancer for our Ingress Controller 
 
+
+###### Deploy Nginx Ingress Controller
+
 ```bash
 helm install stable/nginx-ingress --namespace kube-system --name nginx  --set controller.hostNetwork=true,controller.kind=DaemonSet, --set controller.service.externalTrafficPolicy=Local
 ```
@@ -155,7 +159,8 @@ By default, Google Kubernetes Engine nodes use Google's Container-Optimized OS a
 1. Locked-down firewall
 2. Read-only filesystem where possible
 3. Limited user accounts and disabled root login
-4. Use key-based Authentication
+
+If you have self hosted Cluster You have to take care of Your Security for example disable root user for ssh connection use fail2ban for SSH connection and etc ...
 
 ###### Limiting Pod-to-Pod communication
 By default, all Pods in a cluster can be reached overnetwork via their Pod IP address, we can use Ingress and egress and network policis to allow use tags to define the traffic flowing through your Pods, Once a network policy is applied in a namespace, all traffic is dropped to and from Pods that don't match the configured labels. 
@@ -174,7 +179,7 @@ annotations:
 ```
 To deploy Ingress path securly we can use whitelist or Basic-auth, you can change some annotation in Values file
 
-
+###### Basic-auth
 if you want use Basic-Auth you can add this line to the Jenkinsfile to make it easy 
 
 ```bash
@@ -195,6 +200,9 @@ annotations:
 ```
 ###### Use HTTPS 
 Now that you have enabled external access to our apps our any instance, the next step is to enable HTTPS for our domains in Kubernetes, we can use Let’s Encrypt Certificates and Cert-Manager, for example, if you have an API and you send your  user and password in POST request from front to backend without any SSL it can be hacked but using SSL will encrypt your HTTP body request 
+
+###### Note
+You can enable tls in values.yaml if you deploy CertmMnager with Let’s Encrypt or Just Putt your certificate in a secert file 
 
 
 ### part 5  

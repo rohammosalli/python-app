@@ -34,4 +34,9 @@ ingress:
   path: /app1
   hosts:
     - app1.pinsvc.net
+  # tls:
+  #   - secretName: secretname
+  #     hosts:
+  #       - app1.pinsvc.net
+      
 
