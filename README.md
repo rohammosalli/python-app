@@ -144,7 +144,7 @@ There are five types of Services:
 4. ExternalName
 5. Headless
 
-We used ClusterIP for our applications and LoadBalancer for our Ingress Controller 
+We used ClusterIP for our applications and Ingress Controller 
 
 
 ###### Deploy Nginx Ingress Controller
