@@ -299,3 +299,6 @@ This part of docker run ```-v /root/.kube:/root/.kube``` will mount our Kubernet
 
 Then I wrote my Jenkinsfile to Run Pipeline it's very simple, because I didn't have any advanced experience with Jenkins, But I know we can use``` Built-in variable``` and ```shared library``` to make our Jekninsfile reusable for other Project.
 
+### Registry 
+
+For Docker registry, you can use public Docker registry or you can set up a private Docker registry with Harbor, in this project I used  public Docker registry 
